@@ -1,52 +1,52 @@
-# import xmltodict
 from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 
 from . import parser, utils
 
-# BASE_URL = "https://ezb.ur.de/ezeit"
+
+class Ezb:
+
+    def __init__(self, base_url, encoding="latin-1"):
+        self.base_url = base_url
+        self.encoding = encoding
+
+    def fetch_url(self, url, lazy=True):
+        try:
+            with urlopen(url) as con:
+                return con.read().decode(self.encoding)
+        except HTTPError as err:
+            self.logger.error("Got HTTP {0} while accessing URL {1}".format(
+                err.code, url))
+            if not lazy:
+                raise
+        except URLError as err:
+            self.logger.error("Access to URL %s failed!" % url)
+            self.logger.error(err.reason)
+            if not lazy:
+                raise
 
 
-# def param_lang(lang):
-#     if lang not in ["de", "en"]:
-#         raise Exception()
-#     return lang
+class CollectionsApi(Ezb):
+    """
+    https://ezb.ur.de/services/collections-api.phtml
+    """
+
+    def __init__(self):
+        super().__init__("https://ezb-api.ur.de/collections/v1/")
+
+    def fetch_list(self, parse=True, lazy=True):
+        payload = self.fetch_url(self.base_url, lazy=lazy)
+        return parser.EzbCollections(payload) \
+            if parse else payload
 
 
-# def url_details(jourid, bibid="UBR", client_ip=None, colors=7, lang="de"):
-#     url = "{0}/detail.phtml".format(BASE_URL)
-#     if isinstance(bibid, str):
-#         url = "{0}?bibid={1}".format(url, bibid)
-#     elif isinstance(client_ip, str):
-#         url = "{0}?client_ip={1}".format(url, client_ip)
-#     else:
-#         raise Exception()
-#     url = "{0}&colors={1}&jour_id={2}&xmloutput=1".format(url, colors, jourid)
-#     return url
-
-
-# def fetch_details(ezb_id, bibid="UBR", client_ip=None, colors=7, lang="de"):
-#     url = url_details(ezb_id, bibid=bibid, client_ip=client_ip, colors=colors,
-#                       lang=lang)
-#     try:
-#         with urlopen(url) as con:
-#             return con.read().decode("latin-1")
-#     except Exception:
-#         pass
-
-
-# def json_details(ezb_id, bibid="UBR", client_ip=None, colors=7, lang="de"):
-#     response = fetch_details(ezb_id, bibid=bibid, client_ip=client_ip,
-#                              colors=colors, lang=lang)
-#     try:
-#         return xmltodict.parse(response)
-#     except Exception:
-#         pass
-
-
-class Ezeit:
+class Ezeit(Ezb):
+    """
+    https://ezb.ur.de/services/xmloutput.phtml
+    """
 
     def __init__(self, bibid="UBR", client_ip=None, colors=7, lang="de", log=0):
-        self.base_url = "https://ezb.ur.de/ezeit"
+        super().__init__("https://ezb.ur.de/ezeit")
         if isinstance(bibid, str):
             self.bibid = bibid
             self.client_ip = None
@@ -92,16 +92,6 @@ class Ezeit:
     def add_param_xmlv(url, xmlv):
         return "{0}&xmlv={1}".format(url, xmlv)
 
-    def fetch_url(self, url):
-        try:
-            with urlopen(url) as con:
-                return con.read().decode(self.encoding)
-        except Exception as e:
-            self.logger.error(e.__class__.__name__)
-            # raise
-            # pass
-            # print("fetch_url: Exception")
-
     def url_details(self, jourid, xmlv=None):
         url = "{0}/detail.phtml".format(self.base_url)
         url = self.add_shared_params(url)
@@ -109,18 +99,11 @@ class Ezeit:
         url = self.add_param_xmloutput(url)
         if isinstance(xmlv, int):
             url = self.add_param_xmlv(url, xmlv)
-        # print(url)
         return url
 
-    # def parse_xml(self, xmlstr):
-    #     try:
-    #         return xmltodict.parse(xmlstr)
-    #     except Exception:
-    #         pass
-
-    def fetch_details(self, jourid, xmlv=None, parse=True, clean=True):
+    def fetch_details(self, jourid, xmlv=None, lazy=True, parse=True, clean=True):
         url = self.url_details(jourid, xmlv=xmlv)
-        payload = self.fetch_url(url)
+        payload = self.fetch_url(url, lazy=lazy)
         return parser.EzbDetailAboutJournal(payload, clean=clean) \
             if parse else payload
 
@@ -130,8 +113,8 @@ class Ezeit:
         url = self.add_param_xmloutput(url)
         return url
 
-    def fetch_subjects(self, parse=True, clean=True):
+    def fetch_subjects(self, lazy=True, parse=True, clean=True):
         url = self.url_subjects()
-        payload = self.fetch_url(url)
+        payload = self.fetch_url(url, lazy=lazy)
         return parser.EzbSubjectList(payload, clean=clean) \
             if parse else payload
