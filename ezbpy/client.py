@@ -1,7 +1,7 @@
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
-from . import parser, utils
+from . import __version__, parser, utils
 
 
 class Ezb:
@@ -12,7 +12,9 @@ class Ezb:
 
     def fetch_url(self, url, lazy=True):
         try:
-            with urlopen(url) as con:
+            req = Request(url, headers={"User-agent": "{0}.{1}/{2}".format(
+                __name__, self.__class__.__name__, __version__)})
+            with urlopen(req) as con:
                 return con.read().decode(self.encoding)
         except HTTPError as err:
             self.logger.error("Got HTTP {0} while accessing URL {1}".format(
@@ -38,6 +40,23 @@ class CollectionsApi(Ezb):
         payload = self.fetch_url(self.base_url, lazy=lazy)
         return parser.EzbCollections(payload) \
             if parse else payload
+
+
+class CollectionApi(Ezb):
+    """
+    https://ezb.ur.de/services/collections-api.phtml
+    """
+
+    def __init__(self):
+        super().__init__("https://ezb.ur.de/api/collections")
+
+    def url(self, collection_id):
+        return "{0}/{1}".format(self.base_url, collection_id)
+
+    def fetch(self, collection_id, lazy=True, parse=True):
+        url = self.url(collection_id)
+        payload = self.fetch_url(url, lazy=lazy)
+        return parser.EzbCollection(payload) if parse else payload
 
 
 class Ezeit(Ezb):

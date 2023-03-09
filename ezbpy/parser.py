@@ -1,11 +1,12 @@
 import re
+import html
 import json
 import xmltodict
 
 
 def postprocess(data):
     if isinstance(data, str):
-        return re.sub(r"\s+", " ", data)
+        return re.sub(r"\s+", " ", data).strip()
     if isinstance(data, dict):
         for k in data:
             if isinstance(data[k], str):
@@ -100,6 +101,16 @@ class EzbJson(EzbData):
         self.raw = jsonstr
         self.data = json.loads(self.raw)
         self.jsonstr = json.dumps(self.data, indent=2)
+
+
+class EzbCollection(EzbJson):
+
+    def __init__(self, jsonstr):
+        super().__init__(jsonstr)
+
+    def parse(self, field, data=None):
+        value = self.get(field, data=data)
+        return html.unescape(value.strip())
 
 
 class EzbCollections(EzbJson):
