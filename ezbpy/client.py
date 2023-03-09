@@ -28,23 +28,9 @@ class Ezb:
                 raise
 
 
-class CollectionsApi(Ezb):
-    """
-    https://ezb.ur.de/services/collections-api.phtml
-    """
-
-    def __init__(self):
-        super().__init__("https://ezb-api.ur.de/collections/v1/")
-
-    def fetch_list(self, parse=True, lazy=True):
-        payload = self.fetch_url(self.base_url, lazy=lazy)
-        return parser.EzbCollections(payload) \
-            if parse else payload
-
-
 class CollectionApi(Ezb):
     """
-    https://ezb.ur.de/services/collections-api.phtml
+    https://ezb.ur.de/services/collections.phtml
     """
 
     def __init__(self):
@@ -57,6 +43,20 @@ class CollectionApi(Ezb):
         url = self.url(collection_id)
         payload = self.fetch_url(url, lazy=lazy)
         return parser.EzbCollection(payload) if parse else payload
+
+
+class CollectionsApi(Ezb):
+    """
+    https://ezb.ur.de/services/collections-api.phtml
+    """
+
+    def __init__(self):
+        super().__init__("https://ezb-api.ur.de/collections/v1/")
+
+    def fetch_list(self, parse=True, lazy=True):
+        payload = self.fetch_url(self.base_url, lazy=lazy)
+        return parser.EzbCollections(payload) \
+            if parse else payload
 
 
 class Ezeit(Ezb):
