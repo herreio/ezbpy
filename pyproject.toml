@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ezbpy"
+version = "0.0.0"
+authors = [
+  { name="Donatus Herre", email="donatus.herre@slub-dresden.de" },
+]
+description = "This package allows to access data from the Electronic Journals Library (EZB)."
+readme = "README.rst"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "xmltodict",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/herreio/ezbpy"
+"Bug Tracker" = "https://github.com/herreio/ezbpy/issues"
