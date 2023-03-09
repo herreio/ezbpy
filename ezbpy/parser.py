@@ -53,6 +53,14 @@ class EzbXml(EzbData):
             raise ValueError
         self.jsonstr = json.dumps(self.data, indent=2)
         self.tag = tag
+        self.page_name = self.get([self.root_tag, "page_name"])
+        self.page_vars = self.get([self.root_tag, "page_vars"])
+        self.library = self.get([self.root_tag, "library"])
+        self.header = {
+            "bibid": self.get("@bibid", data=self.library),
+            "colors": self.get([self.root_tag, "@colors"]),
+            "lang": self.get([self.root_tag, "@lang"])
+            }
 
     def getroot(self):
         return self.get(self.root_tag)
