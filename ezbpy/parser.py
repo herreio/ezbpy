@@ -125,6 +125,15 @@ class EzbCollections(EzbJson):
                 for collection in collections[colltype]:
                     if collection not in self.flat_list:
                         self.flat_list.append(collection)
+            self.flat_list_parsed = self._parse_collections()
+
+    def _parse_collections(self):
+        flat_list_parsed = []
+        for coll in self.flat_list:
+            jsonstr = json.dumps(coll)
+            flat_list_parsed.append(EzbCollectionsCollection(jsonstr))
+        if len(flat_list_parsed) > 0:
+            return flat_list_parsed
 
     def main(self):
         return self.get(self.root_element)
@@ -139,13 +148,42 @@ class EzbCollections(EzbJson):
     def get_collections_via_type(self, type_name):
         return self.get([self.root_element, type_name])
 
+    def find_value_via_field(self, key, field_key, field_value):
+        values = [c[key] for c in self.flat_list
+                  if key in c and field_key in c
+                  and c[field_key] == field_value]
+        if len(values) > 0:
+            values.sort()
+            return values
+
     def find_collections_via_field(self, field_key, field_value):
-        collection_ids = [c["ezb_collection_id"]
-                          for c in self.flat_list
-                          if field_key in c and c[field_key] == field_value]
-        if len(collection_ids) > 0:
-            collection_ids.sort()
-            return collection_ids
+        return self.find_value_via_field("ezb_collection_id", field_key, field_value)
 
     def find_collections_via_package_id(self, package_id):
         return self.find_collections_via_field("ezb_package_id", package_id)
+
+    def find_collections_via_collection_anchor(self, coll_anchor):
+        return self.find_collections_via_field("ezb_collection_anchor", coll_anchor)
+
+    def find_products_via_field(self, field_key, field_value):
+        return self.find_value_via_field("zdb_product_id", field_key, field_value)
+
+    def find_products_via_package_id(self, package_id):
+        return self.find_products_via_field("ezb_package_id", package_id)
+
+    def find_products_via_collection_anchor(self, coll_anchor):
+        return self.find_products_via_field("ezb_collection_anchor", coll_anchor)
+
+
+class EzbCollectionsCollection(EzbJson):
+
+    def __init__(self, jsonstr):
+        super().__init__(jsonstr)
+
+    @property
+    def ezb_collection_id(self):
+        return self.get("ezb_collection_id")
+
+    @property
+    def ezb_collection_name(self):
+        return self.get("ezb_collection_name")
