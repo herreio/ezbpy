@@ -5,4 +5,4 @@ For more information on the services run by EZB, see https://ezb.ur.de.
 """
 
 __author__ = "Donatus Herre <donatus.herre@slub-dresden.de>"
-__version__ = "0.0.2"
+__version__ = "0.0.3"
