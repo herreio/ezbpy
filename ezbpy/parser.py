@@ -148,31 +148,35 @@ class EzbCollections(EzbJson):
     def get_collections_via_type(self, type_name):
         return self.get([self.root_element, type_name])
 
-    def find_value_via_field(self, key, field_key, field_value):
+    def find_value_via_field(self, key, field_key, field_value, preserve):
         values = [c[key] for c in self.flat_list
                   if key in c and field_key in c
                   and c[field_key] == field_value]
-        if len(values) > 0:
+        if len(values) > 0 and any(v for v in values):
+            if not preserve:
+                values = [v for v in values if v]
+                if len(values) < 1:
+                    return None
             values.sort()
             return values
 
-    def find_collections_via_field(self, field_key, field_value):
-        return self.find_value_via_field("ezb_collection_id", field_key, field_value)
+    def find_collections_via_field(self, field_key, field_value, preserve=True):
+        return self.find_value_via_field("ezb_collection_id", field_key, field_value, preserve)
 
-    def find_collections_via_package_id(self, package_id):
-        return self.find_collections_via_field("ezb_package_id", package_id)
+    def find_collections_via_package_id(self, package_id, preserve=True):
+        return self.find_collections_via_field("ezb_package_id", package_id, preserve=preserve)
 
-    def find_collections_via_collection_anchor(self, coll_anchor):
-        return self.find_collections_via_field("ezb_collection_anchor", coll_anchor)
+    def find_collections_via_collection_anchor(self, coll_anchor, preserve=True):
+        return self.find_collections_via_field("ezb_collection_anchor", coll_anchor, preserve=preserve)
 
-    def find_products_via_field(self, field_key, field_value):
-        return self.find_value_via_field("zdb_product_id", field_key, field_value)
+    def find_products_via_field(self, field_key, field_value, preserve=True):
+        return self.find_value_via_field("zdb_product_id", field_key, field_value, preserve)
 
-    def find_products_via_package_id(self, package_id):
-        return self.find_products_via_field("ezb_package_id", package_id)
+    def find_products_via_package_id(self, package_id, preserve=True):
+        return self.find_products_via_field("ezb_package_id", package_id, preserve=preserve)
 
-    def find_products_via_collection_anchor(self, coll_anchor):
-        return self.find_products_via_field("ezb_collection_anchor", coll_anchor)
+    def find_products_via_collection_anchor(self, coll_anchor, preserve=True):
+        return self.find_products_via_field("ezb_collection_anchor", coll_anchor, preserve=preserve)
 
 
 class EzbCollectionsCollection(EzbJson):
